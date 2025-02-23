@@ -1,0 +1,29 @@
+import transformers
+from transformers import AutoModelForSequenceClassification, AutoTokenizer
+##From here the second part starts where we will feed in our taxonomy output and get the sentiment of sentences
+##Below Code is used to get the Poll Sentiment of the sentences using HuggingFace CardifNLP Model
+
+model = AutoModelForSequenceClassification.from_pretrained("cardiffnlp/twitter-roberta-base-sentiment-latest", return_dict=True)
+tokenizer = AutoTokenizer.from_pretrained("cardiffnlp/twitter-roberta-base-sentiment-latest")
+def get_Sentiments(row):
+    try:
+        y = row
+        if pd.notna(y):  # Checking for null values
+#             predicted_sentiment = 0
+            #only keeping the words
+            cleaned_text = re.sub(r'[^a-zA-Z ]', '', y)
+#             print(cleaned_text)
+            inputs = tokenizer(cleaned_text, padding=True, truncation=True, return_tensors="pt")
+            prediction = model(**inputs)
+            sentiment = prediction.logits.argmax().item()
+            if sentiment == 0:
+                predicted_sentiment = -1
+            elif sentiment == 1:
+                predicted_sentiment = 0
+            elif sentiment == 2:
+                predicted_sentiment = 1
+            return predicted_sentiment
+        else:
+            return None  # Handle null values
+    except Exception as e:
+        print('exception->',e)
